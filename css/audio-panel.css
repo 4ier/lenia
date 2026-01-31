@@ -1,0 +1,206 @@
+/**
+ * 音频面板和旋钮样式
+ */
+
+/* 音频面板 */
+.audio-panel {
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    padding: var(--spacing-md);
+}
+
+.audio-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.audio-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.audio-toggle-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.audio-toggle-btn:hover {
+    border-color: var(--terminal-color);
+    color: var(--terminal-color);
+}
+
+.audio-toggle-btn.active {
+    background: var(--terminal-dim);
+    border-color: var(--terminal-color);
+    color: var(--terminal-color);
+    text-shadow: 0 0 5px var(--terminal-glow);
+}
+
+.audio-toggle-btn.active::before {
+    content: '♪ ';
+}
+
+/* 旋钮组 */
+.knob-group {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) 0;
+}
+
+/* 单个旋钮容器 */
+.knob-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    user-select: none;
+}
+
+.knob-container.active .knob-canvas {
+    filter: drop-shadow(0 0 8px var(--terminal-glow));
+}
+
+/* 旋钮标签 */
+.knob-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 旋钮画布 */
+.knob-canvas {
+    cursor: ns-resize;
+    transition: filter var(--transition-fast);
+}
+
+.knob-canvas:hover {
+    filter: drop-shadow(0 0 5px var(--terminal-glow));
+}
+
+/* 旋钮数值 */
+.knob-value {
+    font-size: 11px;
+    color: var(--terminal-color);
+    font-family: var(--font-mono);
+}
+
+/* 分享面板 */
+.share-panel {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.share-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.share-btn:hover {
+    border-color: var(--terminal-color);
+    color: var(--terminal-color);
+}
+
+.share-status {
+    font-size: var(--font-size-sm);
+    color: var(--terminal-color);
+    animation: fadeInOut 3s ease forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* 种子显示 */
+.seed-display {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.seed-label {
+    color: var(--text-dim);
+}
+
+.seed-value {
+    color: var(--terminal-color);
+    font-family: var(--font-mono);
+    padding: 2px 6px;
+    background: var(--terminal-dim);
+    border-radius: 2px;
+}
+
+.seed-btn {
+    padding: 2px 8px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.seed-btn:hover {
+    border-color: var(--terminal-color);
+    color: var(--terminal-color);
+}
+
+/* 可视化指示器 */
+.audio-visualizer {
+    height: 30px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    position: relative;
+}
+
+.audio-visualizer-bar {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    background: var(--terminal-color);
+    transition: height 0.1s ease;
+    opacity: 0.8;
+}
+
+/* 响应式 */
+@media (max-width: 600px) {
+    .knob-group {
+        gap: var(--spacing-sm);
+    }
+
+    .knob-container {
+        transform: scale(0.85);
+    }
+}

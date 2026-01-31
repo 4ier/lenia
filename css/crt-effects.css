@@ -1,0 +1,252 @@
+/**
+ * CRT 显示器效果
+ */
+
+/* CRT 屏幕弯曲效果 */
+.canvas-container {
+    position: relative;
+}
+
+.canvas-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 60%,
+        rgba(0, 0, 0, 0.2) 100%
+    );
+}
+
+/* 扫描线效果 */
+.canvas-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 11;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15) 0px,
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    animation: scanline 0.1s linear infinite;
+}
+
+@keyframes scanline {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 0 2px;
+    }
+}
+
+/* 屏幕闪烁 */
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 0.95; }
+    10% { opacity: 0.98; }
+    15% { opacity: 0.96; }
+    20% { opacity: 0.99; }
+    25% { opacity: 0.97; }
+    30% { opacity: 0.98; }
+    35% { opacity: 0.95; }
+    40% { opacity: 0.99; }
+    45% { opacity: 0.97; }
+    50% { opacity: 0.98; }
+    55% { opacity: 0.96; }
+    60% { opacity: 0.99; }
+    65% { opacity: 0.97; }
+    70% { opacity: 0.98; }
+    75% { opacity: 0.95; }
+    80% { opacity: 0.99; }
+    85% { opacity: 0.97; }
+    90% { opacity: 0.98; }
+    95% { opacity: 0.96; }
+    100% { opacity: 0.99; }
+}
+
+#simulation-canvas {
+    animation: flicker 2s infinite;
+}
+
+/* 屏幕曲面效果（可选，重的效果） */
+.crt-curve {
+    border-radius: 20px / 10px;
+    box-shadow:
+        inset 0 0 100px rgba(0, 0, 0, 0.3),
+        inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 荧光余晖效果 */
+.glow-effect {
+    text-shadow: 0 0 5px var(--terminal-glow);
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.1);
+}
+
+/* 整体 CRT 外壳 */
+.crt-frame {
+    background: #1a1a1a;
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow:
+        0 0 0 5px #0a0a0a,
+        0 0 0 10px #1a1a1a,
+        0 5px 30px rgba(0, 0, 0, 0.8),
+        inset 0 0 50px rgba(0, 0, 0, 0.3);
+}
+
+/* RGB 条纹效果 */
+.rgb-stripes::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 12;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03) 0px,
+        rgba(0, 255, 0, 0.03) 1px,
+        rgba(0, 0, 255, 0.03) 2px,
+        transparent 3px
+    );
+    background-size: 3px 100%;
+}
+
+/* 文字 CRT 效果 */
+.crt-text {
+    text-shadow:
+        0 0 2px var(--terminal-color),
+        0 0 5px var(--terminal-glow),
+        0 0 10px var(--terminal-glow);
+}
+
+/* 边框发光 */
+.crt-border-glow {
+    box-shadow:
+        0 0 5px var(--terminal-color),
+        0 0 10px var(--terminal-glow),
+        inset 0 0 5px rgba(51, 255, 51, 0.1);
+}
+
+/* 光标闪烁 */
+@keyframes cursor-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.cursor-blink::after {
+    content: '▌';
+    animation: cursor-blink 1s step-end infinite;
+}
+
+/* 开机效果 */
+@keyframes turn-on {
+    0% {
+        transform: scaleY(0);
+        filter: brightness(30);
+    }
+    30% {
+        transform: scaleY(0.005);
+        filter: brightness(30);
+    }
+    60% {
+        transform: scaleY(0.005);
+        filter: brightness(1);
+    }
+    70% {
+        transform: scaleY(1);
+        filter: brightness(1);
+    }
+    100% {
+        transform: scaleY(1);
+        filter: brightness(1);
+    }
+}
+
+.crt-turn-on {
+    animation: turn-on 0.5s ease-out forwards;
+}
+
+/* 关机效果 */
+@keyframes turn-off {
+    0% {
+        transform: scale(1, 1);
+        filter: brightness(1);
+    }
+    60% {
+        transform: scale(1, 0.005);
+        filter: brightness(1);
+    }
+    100% {
+        transform: scale(0, 0);
+        filter: brightness(30);
+    }
+}
+
+.crt-turn-off {
+    animation: turn-off 0.3s ease-in forwards;
+}
+
+/* 噪点效果 */
+@keyframes noise {
+    0%, 100% { background-position: 0 0; }
+    10% { background-position: -5% -10%; }
+    20% { background-position: -15% 5%; }
+    30% { background-position: 7% -25%; }
+    40% { background-position: 20% 25%; }
+    50% { background-position: -25% 10%; }
+    60% { background-position: 15% 5%; }
+    70% { background-position: 0% 15%; }
+    80% { background-position: 25% 35%; }
+    90% { background-position: -10% 10%; }
+}
+
+.crt-noise::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 13;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    animation: noise 0.2s infinite;
+}
+
+/* 禁用 CRT 效果 */
+body.crt-disabled .canvas-container::before,
+body.crt-disabled .canvas-container::after,
+body.crt-disabled .crt-noise::before,
+body.crt-disabled .rgb-stripes::before {
+    display: none;
+}
+
+body.crt-disabled #simulation-canvas {
+    animation: none;
+}
+
+body.crt-disabled .crt-text {
+    text-shadow: none;
+}
+
+body.crt-disabled .crt-border-glow {
+    box-shadow: none;
+}
