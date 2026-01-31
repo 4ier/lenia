@@ -115,6 +115,24 @@ body {
     text-shadow: 0 0 5px var(--terminal-glow);
 }
 
+/* 帮助按钮 */
+.help-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 28px;
+}
+
+.help-btn:hover {
+    border-color: var(--terminal-color);
+    color: var(--terminal-color);
+}
+
 /* 主内容区 */
 .app-main {
     display: flex;
@@ -136,6 +154,16 @@ body {
 }
 
 #simulation-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+#overlay-canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }

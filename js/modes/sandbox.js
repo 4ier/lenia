@@ -55,6 +55,7 @@ export class SandboxMode {
         // 绘制状态
         this.isDrawing = false;
         this.lastDrawPos = null;
+        this.canvasEnabled = true;
 
         // 选中的预设
         this.selectedPreset = null;
@@ -359,16 +360,26 @@ export class SandboxMode {
             item.querySelector('.preset-radio').textContent = isSelected ? '●' : '○';
         });
 
-        // 切换到放置工具
-        if (this.toolbar) {
-            this.toolbar.selectTool('place');
-        }
-
-        // 加载预设参数
+        // 加载预设参数并自动重置画布
         const preset = getPreset(presetId);
-        if (preset && this.parameterPanel) {
+        if (preset) {
+            // 设置参数
             this.engine.setParams(preset.params);
-            this.parameterPanel.setValues(preset.params);
+            if (this.parameterPanel) {
+                this.parameterPanel.setValues(preset.params);
+            }
+
+            // 清空画布并放置预设图案（如果有的话）
+            this.engine.clear();
+            if (preset.pattern) {
+                const cx = Math.floor(this.gridSize / 2);
+                const cy = Math.floor(this.gridSize / 2);
+                this.engine.placePattern(preset.pattern, cx, cy);
+            }
+
+            // 渲染并更新状态
+            this.render();
+            this.updateStats();
         }
     }
 
@@ -405,6 +416,8 @@ export class SandboxMode {
      * 鼠标按下
      */
     handleMouseDown(e) {
+        if (!this.canvasEnabled) return;
+
         const tool = this.toolbar ? this.toolbar.getCurrentTool() : 'brush';
         const pos = this.renderer.canvasToGrid(e.clientX, e.clientY);
 
@@ -427,7 +440,7 @@ export class SandboxMode {
      * 鼠标移动
      */
     handleMouseMove(e) {
-        if (!this.isDrawing) return;
+        if (!this.canvasEnabled || !this.isDrawing) return;
 
         const pos = this.renderer.canvasToGrid(e.clientX, e.clientY);
 
@@ -504,7 +517,8 @@ export class SandboxMode {
      * 设置速度
      */
     setSpeed(speed) {
-        this.stepsPerFrame = Math.round(speed);
+        // 支持小数速度（使用累加器）
+        this.stepsPerFrame = Math.max(0.1, speed);
     }
 
     /**
@@ -566,8 +580,13 @@ export class SandboxMode {
         const deltaTime = now - this.lastTime;
         this.lastTime = now;
 
+        // 使用累加器支持小数速度
+        this.accumulator += this.stepsPerFrame;
+        const stepsToRun = Math.floor(this.accumulator);
+        this.accumulator -= stepsToRun;
+
         // 执行步进
-        for (let i = 0; i < this.stepsPerFrame; i++) {
+        for (let i = 0; i < stepsToRun; i++) {
             this.engine.step();
         }
 
@@ -832,6 +851,21 @@ export class SandboxMode {
                 knob.render();
             }
         }
+    }
+
+    /**
+     * 启用画布交互
+     */
+    enableCanvas() {
+        this.canvasEnabled = true;
+    }
+
+    /**
+     * 禁用画布交互
+     */
+    disableCanvas() {
+        this.canvasEnabled = false;
+        this.isDrawing = false;
     }
 
     /**

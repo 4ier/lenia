@@ -25,6 +25,7 @@ class LeniaApp {
         // 获取 DOM 元素
         this.elements = {
             canvas: document.getElementById('simulation-canvas'),
+            overlayCanvas: document.getElementById('overlay-canvas'),
             modeButtons: document.querySelectorAll('.mode-btn'),
             statusBar: document.getElementById('status-bar'),
             themeSelector: document.getElementById('theme-selector'),
@@ -88,6 +89,7 @@ class LeniaApp {
         // 挑战模式
         this.modes.challenge = new ChallengeMode({
             canvas,
+            overlayCanvas: this.elements.overlayCanvas,
             gridSize,
             onStatsUpdate: (stats) => this.updateStatusBar(stats),
             onChallengeComplete: (challenge, state) => this.showChallengeComplete(challenge, state),
@@ -168,9 +170,21 @@ class LeniaApp {
      * 切换模式
      */
     switchMode(mode) {
+        // 忽略无效模式
+        if (!mode || !this.modes[mode]) return;
+
         // 停止当前模式
         if (this.currentModeInstance) {
             this.currentModeInstance.stop?.();
+        }
+
+        // 禁用沙盒画布交互（如果切换到其他模式）
+        if (this.modes.sandbox) {
+            if (mode === 'sandbox') {
+                this.modes.sandbox.enableCanvas?.();
+            } else {
+                this.modes.sandbox.disableCanvas?.();
+            }
         }
 
         // 更新按钮状态

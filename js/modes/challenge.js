@@ -37,6 +37,11 @@ export class ChallengeMode {
         this.isRunning = false;
         this.animationId = null;
 
+        // 控件代理（用于键盘快捷键兼容）
+        this.controls = {
+            toggle: () => this.toggle()
+        };
+
         // 回调
         this.onChallengeComplete = options.onChallengeComplete || (() => {});
         this.onChallengeFail = options.onChallengeFail || (() => {});
@@ -101,10 +106,10 @@ export class ChallengeMode {
             presetChanges: 0
         };
 
-        // 初始化目标状态
+        // 初始化目标状态（使用索引作为键，避免相同类型的目标冲突）
         if (this.currentChallenge.objectives) {
-            for (const obj of this.currentChallenge.objectives) {
-                this.challengeState.objectives[obj.type] = {
+            for (let i = 0; i < this.currentChallenge.objectives.length; i++) {
+                this.challengeState.objectives[i] = {
                     completed: false,
                     progress: 0
                 };
@@ -210,7 +215,51 @@ export class ChallengeMode {
         this.challengeState.startTime = performance.now();
         this.isRunning = true;
 
+        // 触发 'play' 动作目标
+        this.triggerAction('play');
+
         this.loop();
+    }
+
+    /**
+     * 播放/暂停切换（供控件调用）
+     */
+    toggle() {
+        if (this.isRunning) {
+            this.stop();
+            this.triggerAction('pause');
+        } else {
+            this.start();
+        }
+    }
+
+    /**
+     * 单步执行
+     */
+    step() {
+        if (!this.currentChallenge) return;
+        this.engine.step();
+        this.challengeState.steps++;
+        this.checkObjectives();
+        this.render();
+        this.updateStats();
+        this.triggerAction('step');
+    }
+
+    /**
+     * 清空画布
+     */
+    clear() {
+        this.engine.clear();
+        this.render();
+        this.triggerAction('clear');
+    }
+
+    /**
+     * 重置
+     */
+    reset() {
+        this.retry();
     }
 
     /**
@@ -262,9 +311,10 @@ export class ChallengeMode {
 
         const stats = this.engine.getStats();
 
-        for (const objective of challenge.objectives) {
-            const objState = this.challengeState.objectives[objective.type];
-            if (objState.completed) continue;
+        for (let i = 0; i < challenge.objectives.length; i++) {
+            const objective = challenge.objectives[i];
+            const objState = this.challengeState.objectives[i];
+            if (!objState || objState.completed) continue;
 
             switch (objective.type) {
                 case 'reach_target':
@@ -310,6 +360,16 @@ export class ChallengeMode {
                 case 'draw':
                     objState.progress = stats.mass / objective.minCells;
                     if (stats.mass >= objective.minCells) {
+                        objState.completed = true;
+                        this.onObjectiveUpdate(objective, objState);
+                    }
+                    break;
+
+                case 'avoid_obstacles':
+                    // 避开障碍物 - 只要生物存活且没撞到障碍物就持续进行
+                    // 在失败检测中会检测碰撞，这里只追踪存活时间
+                    objState.progress = this.challengeState.steps / (objective.steps || 500);
+                    if (this.challengeState.steps >= (objective.steps || 500) && stats.mass > 10) {
                         objState.completed = true;
                         this.onObjectiveUpdate(objective, objState);
                     }
@@ -449,15 +509,20 @@ export class ChallengeMode {
     triggerAction(action) {
         if (!this.currentChallenge) return;
 
-        for (const objective of this.currentChallenge.objectives || []) {
+        const objectives = this.currentChallenge.objectives || [];
+        for (let i = 0; i < objectives.length; i++) {
+            const objective = objectives[i];
             if (objective.type === 'action' && objective.action === action) {
-                const objState = this.challengeState.objectives[objective.type];
-                if (!objState.completed) {
+                const objState = this.challengeState.objectives[i];
+                if (objState && !objState.completed) {
                     objState.completed = true;
                     this.onObjectiveUpdate(objective, objState);
                 }
             }
         }
+
+        // 检查是否所有目标都完成
+        this.checkAllObjectivesComplete();
     }
 
     /**
@@ -466,15 +531,20 @@ export class ChallengeMode {
     triggerPresetPlace(presetId) {
         if (!this.currentChallenge) return;
 
-        for (const objective of this.currentChallenge.objectives || []) {
+        const objectives = this.currentChallenge.objectives || [];
+        for (let i = 0; i < objectives.length; i++) {
+            const objective = objectives[i];
             if (objective.type === 'place_preset' && objective.preset === presetId) {
-                const objState = this.challengeState.objectives[objective.type];
-                if (!objState.completed) {
+                const objState = this.challengeState.objectives[i];
+                if (objState && !objState.completed) {
                     objState.completed = true;
                     this.onObjectiveUpdate(objective, objState);
                 }
             }
         }
+
+        // 检查是否所有目标都完成
+        this.checkAllObjectivesComplete();
     }
 
     /**
@@ -485,14 +555,29 @@ export class ChallengeMode {
 
         this.challengeState.paramChanges++;
 
-        for (const objective of this.currentChallenge.objectives || []) {
+        const objectives = this.currentChallenge.objectives || [];
+        for (let i = 0; i < objectives.length; i++) {
+            const objective = objectives[i];
             if (objective.type === 'adjust_param' && objective.param === param) {
-                const objState = this.challengeState.objectives[objective.type];
-                if (!objState.completed) {
+                const objState = this.challengeState.objectives[i];
+                if (objState && !objState.completed) {
                     objState.completed = true;
                     this.onObjectiveUpdate(objective, objState);
                 }
             }
+        }
+
+        // 检查是否所有目标都完成
+        this.checkAllObjectivesComplete();
+    }
+
+    /**
+     * 检查是否所有目标都完成
+     */
+    checkAllObjectivesComplete() {
+        const allCompleted = Object.values(this.challengeState.objectives).every(o => o.completed);
+        if (allCompleted && !this.challengeState.completed) {
+            this.completeChallenge();
         }
     }
 
@@ -529,6 +614,13 @@ export class ChallengeMode {
         if (this.currentChallenge) {
             this.loadChallenge(this.currentChallenge.id);
         }
+    }
+
+    /**
+     * 获取渲染器
+     */
+    getRenderer() {
+        return this.renderer;
     }
 
     /**

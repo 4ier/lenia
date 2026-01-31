@@ -36,6 +36,67 @@ export class LaboratoryMode {
      */
     init() {
         this.setupStatsPanel();
+        this.setupButtons();
+    }
+
+    /**
+     * 设置按钮事件
+     */
+    setupButtons() {
+        const sweepBtn = document.getElementById('run-sweep-btn');
+        const exportBtn = document.getElementById('export-results-btn');
+
+        if (sweepBtn) {
+            sweepBtn.addEventListener('click', () => this.runParameterSweepUI());
+        }
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportCurrentResults());
+        }
+    }
+
+    /**
+     * 参数扫描 UI
+     */
+    async runParameterSweepUI() {
+        // 创建 mu 参数扫描
+        const experiments = this.createParameterSweep('mu', 0.1, 0.3, 10);
+
+        const progressContainer = document.getElementById('lab-stats');
+        if (progressContainer) {
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'sweep-progress';
+            progressDiv.innerHTML = '<div class="progress-text">Running sweep: 0%</div>';
+            progressContainer.appendChild(progressDiv);
+
+            this.lastResults = await this.runBatch(experiments, (current, total, result) => {
+                const percent = Math.floor((current / total) * 100);
+                progressDiv.querySelector('.progress-text').textContent = `Running sweep: ${percent}% (${current}/${total})`;
+            });
+
+            progressDiv.querySelector('.progress-text').textContent = `Sweep complete! ${this.lastResults.length} experiments`;
+
+            // 显示结果摘要
+            const successful = this.lastResults.filter(r => r.success).length;
+            const summary = document.createElement('div');
+            summary.className = 'sweep-summary';
+            summary.innerHTML = `
+                <div>Successful: ${successful}/${this.lastResults.length}</div>
+                <div>Click "Export Results" to save data</div>
+            `;
+            progressDiv.appendChild(summary);
+        }
+    }
+
+    /**
+     * 导出当前结果
+     */
+    exportCurrentResults() {
+        if (this.lastResults && this.lastResults.length > 0) {
+            this.exportResults(this.lastResults);
+        } else {
+            alert('No experiment results to export. Run a parameter sweep first.');
+        }
     }
 
     /**
